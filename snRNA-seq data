@@ -1,0 +1,33 @@
+#Run cellranger
+
+cellranger count --id=run_count_long_covid 
+--transcriptome=/home/ubuntu/refdata-gex-GRCh38-2020-A 
+--sample=Chun_12K_2 
+--fastqs=/home/ubuntu/rnasamples
+
+#Import all sample genotype information for snRNA-seq data into sample_genotypes directory
+
+#Filter VCFs for each chromosome for desired samples  (repeat this step for all chromosomes)
+
+bcftools view -O z -s A0028,A0029,A0020,A0032 sample_genotypes/GRCh38/chr1.dose.vcf.gz > sample_genotypes_filtered/chr01.vcf.gz 
+
+#Concatenate all filtered chromosomes into one donor genotype
+
+bcftools concat -O z chr01.vcf.gz chr02.vcf.gz chr03.vcf.gz chr04.vcf.gz chr05.vcf.gz chr06.vcf.gz chr07.vcf.gz chr08.vcf.gz chr09.vcf.gz 
+chr10.vcf.gz chr11.vcf.gz chr12.vcf.gz chr13.vcf.gz chr14.vcf.gz chr15.vcf.gz chr16.vcf.gz chr17.vcf.gz chr18.vcf.gz chr19.vcf.gz 
+chr20.vcf.gz chr21.vcf.gz chr22.vcf.gz chrX.vcf.gz > combined_chrom.vcf.gz
+
+#Run cellsnp-lite
+
+nohup cellsnp-lite -b /home/ubuntu/run_count_long_covid/outs/filtered_feature_bc_matrix/barcodes.tsv 
+-s /home/ubuntu/run_count_long_covid/outs/possorted_genome_bam.bam 
+-O long-covid-with-genotype-lite-1 
+-R sample_genotypes_filtered/combined_chrom.vcf.gz 
+-p 20 --minMAF 0.1 --minCOUNT 20 --gzip &
+
+#Run vireo (mode 2)
+
+CELL_DIR=/home/ubuntu/long-covid-with-genotype-lite-1
+DONOR_GT_FILE=/home/ubuntu/sample_genotypes_filtered/combined_chrom.vcf.gz
+OUT_DIR=/home/ubuntu/longcovid12k_geno_lite
+vireo -c $CELL_DIR -d $DONOR_GT_FILE -o $OUT_DIR -t GT --randSeed 2
