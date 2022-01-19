@@ -1,0 +1,27 @@
+#run cellsnp-lite (MODE 1a: barcodes list and genotype data)
+
+nohup cellsnp-lite -b /home/ubuntu/simulated_pooled_data/4sample_bcs.txt 
+-s /home/ubuntu/simulated_pooled_data/merged_downsampled_gex_possorted_bams.bam 
+-O simulated_cellsnplite 
+-R /home/ubuntu/simulated_pooled_data/test.4sample.chr.merged.vcf.gz 
+-p 20 --minMAF 0.1 --minCOUNT 20 --gzip &
+
+
+#run vireo (MODE 1: no genotype data)
+
+vireo -c /home/ubuntu/simulated_cellsnplite 
+-o /home/ubuntu/simulated_vireo_mode1 
+-N 4 --randSeed 2
+
+#run vireo (MODE 2: with genotype data)
+
+vireo -c /home/ubuntu/simulated_cellsnplite 
+-d /home/ubuntu/simulated_pooled_data/test.4sample.chr.merged.vcf.gz 
+-o /home/ubuntu/simulated_vireo_mode2 
+-N 4 -t GT --randSeed 2
+
+#make genotype barcodes
+
+GTbarcode -i /home/ubuntu/simulated_vireo_mode1/GT_donors.vireo.vcf.gz -o /home/ubuntu/simulated_vireo_mode1/GT_barcodes.tsv --randSeed 1
+
+
